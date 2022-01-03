@@ -7,6 +7,7 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.RequestBuilder;
@@ -67,6 +68,12 @@ public class NetworkHttpClient extends HttpClient {
         client = clientBuilder
             .setConnectionManager(connectionManager)
             .setDefaultRequestConfig(config)
+            .setDefaultSocketConfig(
+                    // To ensure specified socket timeout is also applied to initial SSL handshake and CONNECT requests
+                    // we set the same socket timeout specified in the requestConfig as the defaultSocketConfig
+                    // https://issues.apache.org/jira/browse/HTTPCLIENT-1892
+                    SocketConfig.custom().setSoTimeout(config.getSocketTimeout()).build()
+            )
             .setDefaultHeaders(headers)
             .setRedirectStrategy(this.getRedirectStrategy())
             .build();
